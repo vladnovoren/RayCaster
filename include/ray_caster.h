@@ -7,11 +7,6 @@
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 
-enum RayCasterState {
-  RAY_CASTER_OK,
-  RAY_CASTER_SDL_ERR
-};
-
 
 struct Screen {
   Vector pos;
@@ -32,7 +27,12 @@ class RayCaster {
 
   Screen screen;
 
-  RayCasterState state;
+  enum State {
+    OK,
+    SDL_ERR
+  };
+
+  State state;
 public:
   RayCaster();
 
@@ -40,17 +40,17 @@ public:
 
   ~RayCaster();
 
-  RayCasterState ReportState() const;
+  State ReportState() const;
 
   Vector PixelToReal(int px, int py);
 
-  void RenderSphere(const Sphere& sphere, const Camera& camera);
+  void RenderSphere(const World& world);
 
-  ColorRGB GetPixelColor(const World& world, int px, int py);
+  ColorRGB GetSpherePixelColor(const World& world, int px, int py);
 
   ColorRGB GetDiffuse(const Lighter& lighter, const Vector& r_light_dir, const Vector& normal);
 
-  ColorRGB GetSpecular(const ColorRGB& light_color, const Vector& r_light_dir, const Vector& normal, const Vector& intersec, const Vector& camera, int material);
+  ColorRGB GetSpecular(const ColorRGB& light_color, const Vector& reflected, const Vector& to_camera, int material);
 
   void RenderWorld(const World& world, double upp);
 };

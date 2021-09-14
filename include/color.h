@@ -33,5 +33,7 @@ double Min(const double first, const double second);
 
 double Max(const double first, const double second);
 
+void Swap(double& first, double& second);
+
 
 #endif /* color.h */

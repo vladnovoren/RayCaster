@@ -3,11 +3,6 @@
 
 #include "ray_caster.h"
 
-enum AppState {
-  APP_OK,
-  APP_SDL_ERR
-};
-
 
 static const char* WINDOW_TITLE = "Sphere";
 static const SDL_Rect RENDERER_DEFAULT_LOCATION = {
@@ -21,7 +16,13 @@ static const SDL_Rect RENDERER_DEFAULT_LOCATION = {
 class App {
   SDL_Window* window;
   SDL_Renderer* renderer;
-  AppState state;
+
+  enum State {
+    OK,
+    SDL_ERR
+  };
+
+  State state;
  public:
   App();
 
@@ -29,7 +30,7 @@ class App {
 
   void ClearScreen();
 
-  AppState ReportState() const;
+  State ReportState() const;
 
   void Exec();
 };

@@ -3,21 +3,21 @@
 
 App::App() {
   if (SDL_Init(SDL_INIT_EVERYTHING)) {
-    state = APP_SDL_ERR;
+    state = SDL_ERR;
     ReportState();
     return;
   }
 
   window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
   if (!window) {
-    state = APP_SDL_ERR;
+    state = SDL_ERR;
     ReportState();
     return;
   }
 
   renderer = SDL_CreateRenderer(window, -1, 0);
   if (!renderer) {
-    state = APP_SDL_ERR;
+    state = SDL_ERR;
     ReportState();
     return;
   }
@@ -37,13 +37,13 @@ void App::ClearScreen() {
 }
 
 
-AppState App::ReportState() const {
+App::State App::ReportState() const {
   fprintf(stderr, "App reports: ");
   switch (state) {
-    case APP_OK:
+    case OK:
       fprintf(stderr, "ok\n");
       break;
-    case APP_SDL_ERR:
+    case SDL_ERR:
       fprintf(stderr, "SDL error. SDL reports: %s\n", SDL_GetError());
       break;
     default:
@@ -59,9 +59,9 @@ void App::Exec() {
   double upp = 1;
   RayCaster ray_caster(renderer);
   Camera camera(Vector(800, 400, 300), Vector(-1, 0, 0));
-  Lighter ligher(Vector(0, 0, 600), ColorRGB(0.8, 0.8, 0.8));
+  Lighter ligher(Vector(0, 0, 600), ColorRGB(0.75, 0.75, 0.75));
   ColorRGB ambient(0.15, 0.15, 0.15);
-  Sphere sphere(Vector(-800, 400, 300), 500, ColorRGB(1, 0, 0.2), 32);
+  Sphere sphere(Vector(-800, 400, 300), 300, ColorRGB(1, 0.2, 0.6), 32);
   World world(ligher, sphere, ambient, camera);
 
   bool is_open = true;

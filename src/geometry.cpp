@@ -13,30 +13,6 @@ Sphere::Sphere(const Vector& center, const double r, const ColorRGB& color, cons
   this->color = color;
   this->material = material;
 }
-
-
-int GetSphereIntersections(const Sphere& sphere, const Vector& start, const Vector& dir, Vector* first, Vector* second) {
-  assert(first);
-  assert(second);
-
-  double a = dir * dir;
-  double b = 2 * dir * (start - sphere.center);
-  double c = start * start + sphere.center * sphere.center - sphere.center * start * 2 - sphere.r * sphere.r;
-
-  double x1 = 0;
-  double x2 = 0;
-
-  int n_roots = SolveQuade(a, b, c, &x1, &x2);
-  if (n_roots == INF_SOL || !n_roots)
-    return n_roots;
-  
-  *first = start +  x1 * dir;
-  if (n_roots == 2)
-    *second = start +  x2 * dir;
-
-  return n_roots;
-}
-
 //==============================================================================
 
 
@@ -208,9 +184,6 @@ void Vector::Resize(double new_length) {
 void Vector::Reflect(const Vector& normal) {
   (*this) = 2 * (normal * *this) * normal - (*this);
 }
-// void Vector::Reflect(const Vector& normal) {
-//   (*this) = -(*this) - (-(*this) * normal) * normal * 2;
-// }
 //==============================================================================
 
 
@@ -234,25 +207,27 @@ double VectorsSin(const Vector& first, const Vector& second) {
 
 // Geometry
 //==============================================================================
-int GetSphereIntersecs(const Sphere& sphere, const Vector& start, const Vector& dir, Vector* first, Vector* second) {
-  assert(first);
-  assert(second);
+int VectorSphereIntersec(const Sphere& sphere, const Vector& start, const Vector& dir, Vector* intersec) {
+  assert(intersec);
 
   double a = dir * dir;
   double b = 2 * dir * (start - sphere.center);
   double c = start * start + sphere.center * sphere.center - 2 * sphere.center * start - sphere.r * sphere.r;
 
-  double x1 = 0;
-  double x2 = 0;
+  double t1 = 0;
+  double t2 = 0;
 
-  int n_roots = SolveQuade(a, b, c, &x1, &x2);
+  int n_roots = SolveQuade(a, b, c, &t1, &t2);
   if (n_roots == INF_SOL || !n_roots)
     return n_roots;
 
-  *first = start + x1 * dir;
-  if (n_roots == 2)
-    *second = start + x2 * dir;
+  if (t1 > t2)
+    Swap(t1, t2);
+  
+  if (t1 <= 0)
+    t1 = t2;
 
-  return n_roots;
+  *intersec = start + t1 * dir;
+  return 1;
 }
 //==============================================================================

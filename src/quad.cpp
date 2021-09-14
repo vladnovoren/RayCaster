@@ -40,8 +40,8 @@ int SolveQuade(double a, double b, double c, double* x1, double* x2) {
 
     if (discrim > 0) {
       double sqrt_discrim = sqrt(discrim);
-      *x1 = (-b + sqrt_discrim)/(2 * a);
-      *x2 = (-b - sqrt_discrim)/(2 * a);
+      *x1 = (-b - sqrt_discrim)/(2 * a);
+      *x2 = (-b + sqrt_discrim)/(2 * a);
       return TWO_SOL;
     }
   }

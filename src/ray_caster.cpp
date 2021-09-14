@@ -36,7 +36,7 @@ RayCaster::RayCaster(SDL_Renderer* renderer) {
   this->renderer = renderer;
   texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, WINDOW_WIDTH, WINDOW_HEIGHT);
   if (!texture) {
-    state = RAY_CASTER_SDL_ERR;
+    state = SDL_ERR;
     ReportState();
     return;
   }
@@ -48,13 +48,13 @@ RayCaster::~RayCaster() {
 }
 
 
-RayCasterState RayCaster::ReportState() const {
+RayCaster::State RayCaster::ReportState() const {
   fprintf(stderr, "RayCaster reports: ");
   switch (state) {
-    case RAY_CASTER_OK:
+    case OK:
       fprintf(stderr, "ok\n");
       break;
-    case RAY_CASTER_SDL_ERR:
+    case SDL_ERR:
       fprintf(stderr, "SDL error. SDL reports: %s\n", SDL_GetError());
       break;
     default:
@@ -69,13 +69,7 @@ RayCasterState RayCaster::ReportState() const {
 void RayCaster::RenderWorld(const World& world, double upp) {
   screen.Prepare(world.camera, upp);
   SDL_SetRenderTarget(renderer, texture);
-  for (int py = 0; py < WINDOW_HEIGHT; ++py) {
-    for (int px = 0; px < WINDOW_WIDTH; ++px) {
-      ColorRGB color = GetPixelColor(world, px, py);
-      SDL_SetRenderDrawColor(renderer, (int)color.r, (int)color.g, (int)color.b, 0xff);
-      SDL_RenderDrawPoint(renderer, px, py);
-    }
-  }
+  RenderSphere(world);
   SDL_SetRenderTarget(renderer, NULL);
   SDL_RenderCopy(renderer, texture, NULL, NULL);
 }
@@ -86,25 +80,37 @@ Vector RayCaster::PixelToReal(int px, int py) {
 }
 
 
-ColorRGB RayCaster::GetPixelColor(const World& world, int px, int py) {
+void RayCaster::RenderSphere(const World& world) {
+  for (int py = 0; py < WINDOW_HEIGHT; ++py) {
+    for (int px = 0; px < WINDOW_WIDTH; ++px) {
+      ColorRGB color = GetSpherePixelColor(world, px, py);
+      SDL_SetRenderDrawColor(renderer, (int)color.r, (int)color.g, (int)color.b, 0xff);
+      SDL_RenderDrawPoint(renderer, px, py);
+    }
+  }
+}
+
+
+ColorRGB RayCaster::GetSpherePixelColor(const World& world, int px, int py) {
   Vector dir = PixelToReal(px, py) - world.camera.pos;
-
-  Vector intersec1, intersec2;
-  int n_intersecs = GetSphereIntersecs(world.sphere, world.camera.pos, dir, &intersec1, &intersec2);
-  if (!n_intersecs || n_intersecs == INF_SOL)
+  Vector intersec;
+  int is_intersec = VectorSphereIntersec(world.sphere, world.camera.pos, dir, &intersec);
+  if (!is_intersec)
     return ColorRGB(0, 0, 0);
-  double len1 = (intersec1 - world.camera.pos).Length();
-  double len2 = (intersec2 - world.camera.pos).Length();
-  if (!(n_intersecs == 1) && !(len1 < len2))
-    intersec1 = intersec2;
 
-  Vector normal = intersec1 - world.sphere.center;
+  Vector normal = intersec - world.sphere.center;
   normal.Normalize();
-  Vector r_light_dir = world.lighter.pos - intersec1;
+  Vector r_light_dir = world.lighter.pos - intersec;
+  r_light_dir.Normalize();
+  Vector reflected = r_light_dir;
+  reflected.Reflect(normal);
+  reflected.Normalize();
+  Vector to_camera = world.camera.pos - intersec;
+  to_camera.Normalize();
 
   ColorRGB result;
   ColorRGB diffuse = GetDiffuse(world.lighter, r_light_dir, normal);
-  ColorRGB specular = GetSpecular(world.ambient, r_light_dir, normal, intersec1, world.camera.pos, world.sphere.material);
+  ColorRGB specular = GetSpecular(world.lighter.color, reflected, to_camera, world.sphere.material);
   result = world.sphere.color * (diffuse + world.ambient) + specular;
   result.Format();
   return result;
@@ -113,16 +119,14 @@ ColorRGB RayCaster::GetPixelColor(const World& world, int px, int py) {
 
 ColorRGB RayCaster::GetDiffuse(const Lighter& lighter, const Vector& r_light_dir, const Vector& normal) {
   ColorRGB diffuse = lighter.color;
-  diffuse *= Max(0, VectorsCos(r_light_dir, normal));
+  diffuse *= Max(0, r_light_dir * normal);
   return diffuse;
 }
 
 
-ColorRGB RayCaster::GetSpecular(const ColorRGB& light_color, const Vector& r_light_dir, const Vector& normal, const Vector& intersec, const Vector& camera, int material) {
+ColorRGB RayCaster::GetSpecular(const ColorRGB& light_color, const Vector& reflected, const Vector& to_camera, int material) {
   ColorRGB specular = light_color;
-  Vector reflected = r_light_dir;
-  reflected.Reflect(normal);
-  double spec_mul = pow(Max(VectorsCos(reflected, camera - intersec), 0), material);
-  return specular * spec_mul;
+  specular *= pow(Max(reflected * to_camera, 0), material);
+  return specular;
 }
 //==============================================================================

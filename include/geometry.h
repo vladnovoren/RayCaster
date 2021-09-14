@@ -87,8 +87,7 @@ struct Sphere {
   Sphere(const Vector& center, const double r, const ColorRGB& color, const int material);
 };
 
-
-int GetSphereIntersecs(const Sphere& sphere, const Vector& start, const Vector& dir, Vector* first, Vector* second);
+int VectorSphereIntersec(const Sphere& sphere, const Vector& start, const Vector& dir, Vector* intersec);
 //==============================================================================
 
 
