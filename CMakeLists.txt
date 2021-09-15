@@ -5,7 +5,7 @@ project(RayCaster VERSION 1.0)
 set(FLAGS "-Wall -Wextra -g -O3")
 set(CMAKE_CXX_FLAGS ${FLAGS})
 
-add_executable(ray_caster src/main.cpp src/ray_caster.cpp src/quad.cpp src/geometry.cpp src/app.cpp src/world.cpp src/color.cpp)
+add_executable(ray_caster src/main.cpp src/ray_caster.cpp src/quad.cpp src/geometry.cpp src/app.cpp src/world.cpp src/color.cpp src/button.cpp)
 add_executable(test_vec src/test_vec.cpp src/geometry.cpp src/color.cpp src/quad.cpp)
 
 target_include_directories(ray_caster PUBLIC include/)

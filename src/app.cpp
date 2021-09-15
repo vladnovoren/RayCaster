@@ -64,6 +64,21 @@ void App::Exec() {
   Sphere sphere(Vector(-800, 400, 300), 300, ColorRGB(1, 0.2, 0.6), 32);
   World world(ligher, sphere, ambient, camera);
 
+  ButtonsHandler buttons(renderer);
+  Button cam_forward({380, 510, 40, 40}, ColorRGB(255, 0, 0));
+  Button cam_back({380, 560, 40, 40}, ColorRGB(255, 0, 0));
+  Button cam_right({430, 560, 40, 40}, ColorRGB(255, 0, 0));
+  Button cam_left({330, 560, 40, 40}, ColorRGB(255, 0, 0));
+  Button change_material({480, 560, 40, 40}, ColorRGB(255, 0, 0));
+  Button change_color({280, 560, 40, 40}, ColorRGB(255, 0, 0));
+
+  size_t cam_forward_id = buttons.AddButton(cam_forward);
+  size_t cam_back_id = buttons.AddButton(cam_back);
+  size_t cam_right_id = buttons.AddButton(cam_right);
+  size_t cam_left_id = buttons.AddButton(cam_left);
+  size_t change_material_id = buttons.AddButton(change_material);
+  size_t change_color_id = buttons.AddButton(change_color);
+
   bool is_open = true;
   SDL_Event event;
   while (is_open) {
@@ -72,6 +87,10 @@ void App::Exec() {
         case SDL_QUIT:
           is_open = false;
           break;
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+          buttons.HandleEvent(event.button);
+          break;
         default:
           break;
       }
@@ -79,11 +98,33 @@ void App::Exec() {
     if (!is_open)
       break;
 
-    time_t prev_t = SDL_GetTicks();
+    if (buttons.GetButtonState(cam_forward_id) == Button::PRESSED)
+      world.camera.pos += Vector(-10, 0, 0);
+    
+    if (buttons.GetButtonState(cam_back_id) == Button::PRESSED)
+      world.camera.pos += Vector(10, 0, 0);
+
+    if (buttons.GetButtonState(cam_right_id) == Button::PRESSED)
+      world.camera.pos += Vector(0, 10, 0);
+    
+    if (buttons.GetButtonState(cam_left_id) == Button::PRESSED)
+      world.camera.pos += Vector(0, -10, 0);
+    
+    if (buttons.GetButtonState(change_material_id) == Button::PRESSED) {
+      world.sphere.material++;
+      world.sphere.material %= 32;
+    }
+
+    if (buttons.GetButtonState(change_color_id) == Button::PRESSED) {
+      world.sphere.color.r = (double)(rand() % 100) / 200 + 0.1;
+      world.sphere.color.g = (double)(rand() % 100) / 200 + 0.1;
+      world.sphere.color.b = (double)(rand() % 100) / 200 + 0.1;
+    }
+
     ClearScreen();
+
     ray_caster.RenderWorld(world, upp);
+    buttons.RenderButtons();
     SDL_RenderPresent(renderer);
-    time_t cur_t = SDL_GetTicks();
-    printf("[FPS]: %lf\n", 1000.0f / (cur_t - prev_t));
   }
 }

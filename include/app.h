@@ -2,6 +2,7 @@
 #define APP_H
 
 #include "ray_caster.h"
+#include "button.h"
 
 
 static const char* WINDOW_TITLE = "Sphere";
