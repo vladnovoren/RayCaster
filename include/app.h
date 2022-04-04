@@ -5,7 +5,7 @@
 #include "button.h"
 
 
-static const char* WINDOW_TITLE = "Sphere";
+static const char* const WINDOW_TITLE = "Sphere";
 static const SDL_Rect RENDERER_DEFAULT_LOCATION = {
   0,
   0,
